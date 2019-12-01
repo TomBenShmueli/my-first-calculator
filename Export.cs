@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -11,14 +11,17 @@ using Microsoft.Office.Interop.Excel;
 
 namespace WindowsFormsApp5
 {
-    public partial class Export : Form
+    public partial class Export : Form 
     {
+        //variables
+
         private readonly List<object> lsbfromsource = new List<object>();
 
         private readonly RadioButton rdbIsPart = new RadioButton();
 
         private List<RadioButton> rdblist = new List<RadioButton>();
        
+        //functions
         public Export(IEnumerable<object> lsbsource,RadioButton formRdbPart)
         {
             InitializeComponent();
@@ -43,6 +46,7 @@ namespace WindowsFormsApp5
             ExportInfo(btnExExcel,rdbDay,rdbMonth,dsgExport.RowCount);
         }
 
+        //Exports the info to sender object in the form of a table. 
         public void ExportInfo(object sender, RadioButton rdbDay, RadioButton rdbMonth,int rowcount)
         {
             if (MarkedStatus(rdblist) is false)
@@ -51,14 +55,14 @@ namespace WindowsFormsApp5
                 return;
             }
 
-            if (sender == btnExText)
+            if (sender == btnExText) // txt file export.
               {
-                    if (rdbDay.Checked)
+                    if (rdbDay.Checked) // Export for daily wage.
                     {
                         try
                         {
                             var toworkdays = lsbfromsource.Cast<WorkDay>();
-                            var filterDay = toworkdays.First(d => d.DateAndTime.Date == dtpExportInfo.Value.Date);
+                            var filterDay = toworkdays.First(d => d.DateAndTime.Date == dtpExportInfo.Value.Date); //get fitting days
                             using (var savefd = new SaveFileDialog())
                             {
                                 savefd.Filter = @"Text files (*.txt)|*.txt";
@@ -85,12 +89,12 @@ namespace WindowsFormsApp5
                             MessageBox.Show(exception.Message, @"Error", MessageBoxButtons.OK, MessageBoxIcon.None);
                         }
                     }
-                    else if (rdbMonth.Checked)
+                    else if (rdbMonth.Checked) // Export for monthly wage.
                     {
                         try
                         {
                             var toworkdays = lsbfromsource.Cast<WorkDay>();
-                            var filteredList = toworkdays.Where(d => d.DateAndTime.Month == dtpExportInfo.Value.Month && d.DateAndTime.Year == dtpExportInfo.Value.Year);
+                            var filteredList = toworkdays.Where(d => d.DateAndTime.Month == dtpExportInfo.Value.Month && d.DateAndTime.Year == dtpExportInfo.Value.Year);  //get fitting days
                             using (var savefd = new SaveFileDialog())
                             {
                                 savefd.Filter = @"Text files (*.txt)|*.txt";
@@ -120,15 +124,15 @@ namespace WindowsFormsApp5
                             MessageBox.Show(exception.Message, @"Error", MessageBoxButtons.OK, MessageBoxIcon.None);
                         }
                     }
-                    else
+                    else // Export for yearly wage.
                     {
                         try
                         {
                             var toworkdays = lsbfromsource.Cast<WorkDay>();
-                            var filteredList = toworkdays.Where(d => d.DateAndTime.Year == dtpExportInfo.Value.Year);
-                            using (var savefd = new SaveFileDialog())
+                            var filteredList = toworkdays.Where(d => d.DateAndTime.Year == dtpExportInfo.Value.Year);  //get fitting days
+                            using (var savefd = new SaveFileDialog())  
                             {
-                                savefd.Filter = @"Text files (*.txt)|*.txt";
+                                savefd.Filter = @"Text files (*.txt)|*.txt"; 
                                 savefd.DefaultExt = "txt";
                                 savefd.AddExtension = true;
                                 savefd.ShowDialog();
@@ -144,11 +148,6 @@ namespace WindowsFormsApp5
                                 lsbDataStreamWriter.Close();
                                 return;
                             }
-
-                        }
-                        catch (ArgumentException)
-                        {
-
                         }
                         catch (Exception exception)
                         {
@@ -158,9 +157,7 @@ namespace WindowsFormsApp5
               }
 
             #region excelExport
-
-
-            try
+            try 
             {
                 if (rdbDay.Checked)
                 {
@@ -170,7 +167,6 @@ namespace WindowsFormsApp5
                     ExcelExport(filterDay,rowcount);
                     return;
                 }
-
                 if (rdbMonth.Checked)
                 {
                     var toworkdaysM = lsbfromsource.Cast<WorkDay>();
@@ -181,7 +177,6 @@ namespace WindowsFormsApp5
                     return;
 
                 }
-
                 var toworkdaysY = lsbfromsource.Cast<WorkDay>();
                 var filteredListY = toworkdaysY.Where(d =>  d.DateAndTime.Year == dtpExportInfo.Value.Year).ToList();
                 ExcelExport(filteredListY,rowcount);
@@ -189,10 +184,7 @@ namespace WindowsFormsApp5
             catch (Exception e)
             {
                 MessageBox.Show(e.Message);
-
             }
-            
-
             #endregion
 
 
@@ -205,11 +197,10 @@ namespace WindowsFormsApp5
                 if (radioButton.Checked)
                     return true;
             }
-
             return false;
         }
 
-        private void Export_Load(object sender, EventArgs e)
+        private void Export_Load(object sender, EventArgs e) // Previews the wage data in a table.
         {
             dsgExport.ColumnCount = 4;
             dsgExport.ColumnHeadersVisible = true;
@@ -230,7 +221,7 @@ namespace WindowsFormsApp5
             dsgExport.ReadOnly = true;
         }
 
-        private void ExcelExport(List<WorkDay> workDaysList, int rowcount)
+        private void ExcelExport(List<WorkDay> workDaysList, int rowcount) // Exports the data table to excel.
         {
             var xlfile = new Microsoft.Office.Interop.Excel.Application { Visible = false };
 
@@ -254,7 +245,6 @@ namespace WindowsFormsApp5
                 oSheet.Cells[i + 2, 4] = WorkActions.LocalCalculate(workDaysList[i], rdbIsPart);
             }
 
-
             using (var savefd = new SaveFileDialog()) // for custom saving
             {
                 savefd.Filter = @"Microsoft Excel(*.xlsx)|*xlsx|Microsoft Excel 97-2003 Worksheet(*.xls)|*.xls|Excel macro-enabled workbook(*.xlsm)|*xlsm;";
@@ -274,53 +264,5 @@ namespace WindowsFormsApp5
             Marshal.ReleaseComObject(xlfile);
             MessageBox.Show("Success!", "Info", MessageBoxButtons.OK, MessageBoxIcon.Asterisk);
         }
-
-        //private async void ExcelExportAsync(List<WorkDay> workDaysList, int rowcount)
-        //{
-        //    var xlfile =new Microsoft.Office.Interop.Excel.Application { Visible = false };
-
-        //    //Get a new workbook.
-        //    var oWb = (Microsoft.Office.Interop.Excel._Workbook)(xlfile.Workbooks.Add(Missing.Value));
-        //    var oSheet = (Microsoft.Office.Interop.Excel._Worksheet)oWb.ActiveSheet;
-
-        //    //Add table headers going cell by cell.
-
-        //    oSheet.Cells[1, 1] = "EntryNumber";
-        //    oSheet.Cells[1, 2] = "Date";
-        //    oSheet.Cells[1, 3] = "Hours";
-        //    oSheet.Cells[1, 4] = "Earned";
-
-        //    for (int i = 0; i < rowcount - 1; i++) //Data from list to excel
-        //    {
-
-        //        oSheet.Cells[i + 2, 1] = i + 1;
-        //        oSheet.Cells[i + 2, 2] = workDaysList[i].DateAndTime.ToShortDateString();
-        //        oSheet.Cells[i + 2, 3] = workDaysList[i].Hours;
-        //        oSheet.Cells[i + 2, 4] = WorkActions.LocalCalculate(workDaysList[i], rdbIsPart);
-        //    }
-
-
-        //    using (var savefd = new SaveFileDialog()) // for custom saving
-        //    {
-        //        savefd.Filter = @"Microsoft Excel(*.xlsx)|*xlsx|Microsoft Excel 97-2003 Worksheet(*.xls)|*.xls|Excel macro-enabled workbook(*.xlsm)|*xlsm;";
-        //        savefd.DefaultExt = "xlsx";
-        //        savefd.AddExtension = true;
-        //        savefd.ShowDialog();
-        //        var path = savefd.FileName;
-        //        oWb.SaveAs(path);
-        //        if (path == String.Empty)
-        //        {
-        //            return;
-        //        }
-        //    }
-        //    oWb.Close();
-        //    Marshal.ReleaseComObject(oWb);
-        //    Marshal.ReleaseComObject(oSheet);
-        //    Marshal.ReleaseComObject(xlfile);
-        //    MessageBox.Show("Success!", "Info", MessageBoxButtons.OK, MessageBoxIcon.Asterisk);
-        //}
-
-
-
     }
 }
